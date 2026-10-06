@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Minecraft Sejarah: Pengembaraan Kemerdekaan</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Pixel & Sans -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #0d0f12;
+            color: #ffffff;
+            touch-action: manipulation;
+            user-select: none;
+            -webkit-user-select: none;
+            overflow: hidden;
+        }
+
+        .font-pixel {
+            font-family: 'Press Start 2P', cursive;
+        }
+
+        /* Minecraft UI Borders */
+        .mc-border-dirt {
+            background: #5c4033;
+            border: 4px solid #3d281d;
+            box-shadow: inset -4px -4px 0px 0px #2a1b13, inset 4px 4px 0px 0px #805947;
+        }
+
+        .mc-border-stone {
+            background: #4a4e57;
+            border: 4px solid #2d3037;
+            box-shadow: inset -4px -4px 0px 0px #1e2025, inset 4px 4px 0px 0px #6b707c;
+        }
+
+        .mc-btn {
+            position: relative;
+            background: #606060;
+            border: 3px solid #2b2b2b;
+            box-shadow: inset -3px -3px 0px 0px #1c1c1c, inset 3px 3px 0px 0px #929292;
+            transition: transform 0.05s, filter 0.1s;
+        }
+
+        .mc-btn:active {
+            transform: translateY(2px);
+            box-shadow: inset -2px -2px 0px 0px #1c1c1c, inset 2px 2px 0px 0px #929292;
+        }
+
+        .mc-btn-primary {
+            background: #2e7d32;
+            border-color: #1b5e20;
+            box-shadow: inset -3px -3px 0px 0px #0f3812, inset 3px 3px 0px 0px #4caf50;
+        }
+
+        .mc-btn-gold {
+            background: #f57f17;
+            border-color: #b76100;
+            box-shadow: inset -3px -3px 0px 0px #7a3e00, inset 3px 3px 0px 0px #ffb300;
+        }
+
+        .mc-card {
+            background: #252830;
+            border: 4px solid #14161b;
+            box-shadow: inset -4px -4px 0px 0px #0d0e11, inset 4px 4px 0px 0px #3c404d;
+        }
+
+        /* Touch Control Buttons */
+        .dpad-btn {
+            background: rgba(45, 52, 70, 0.85);
+            border: 2px solid #5a637a;
+            box-shadow: inset -2px -2px 0px 0px #1a1e29, inset 2px 2px 0px 0px #7b86a3;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            touch-action: none;
+        }
+
+        .dpad-btn:active, .dpad-btn.active {
+            background: #438e46;
+            border-color: #72db76;
+            transform: scale(0.95);
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% { transform: scale(1); filter: drop-shadow(0 0 2px #00e5ff); }
+            50% { transform: scale(1.15); filter: drop-shadow(0 0 8px #00e5ff); }
+        }
+
+        .diamond-anim {
+            animation: pulse-glow 2s infinite ease-in-out;
+        }
+
+        canvas {
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+        }
+    </style>
+</head>
+<body class="h-screen w-screen flex flex-col justify-between bg-slate-950 overflow-hidden">
+
+    <!-- HEADER / HUD BAR -->
+    <header class="z-20 bg-slate-900/95 border-b-4 border-slate-800 p-2 sm:p-3 shadow-lg select-none">
+        <div class="max-w-xl mx-auto flex items-center justify-between">
+            <!-- Health Hearts -->
+            <div class="flex items-center gap-1" id="healthContainer">
+                <i class="fa-solid fa-heart text-red-500 text-base sm:text-lg"></i>
+                <i class="fa-solid fa-heart text-red-500 text-base sm:text-lg"></i>
+                <i class="fa-solid fa-heart text-red-500 text-base sm:text-lg"></i>
+            </div>
+
+            <!-- Current Biome Tag -->
+            <div class="hidden sm:flex flex-col items-center">
+                <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">BIOM SEJARAH</span>
+                <span class="font-pixel text-[10px] text-amber-400" id="hudBiomeName">1942: Pendudukan Jepun</span>
+            </div>
+
+            <!-- Diamonds Score -->
+            <div class="flex items-center bg-slate-800 px-2.5 py-1 rounded-lg border-2 border-slate-700">
+                <i class="fa-solid fa-gem text-cyan-400 text-sm sm:text-base mr-1.5 diamond-anim"></i>
+                <span class="font-pixel text-[11px] text-cyan-300" id="hudDiamonds">0/20</span>
+            </div>
+
+            <!-- Pocket Book Button -->
+            <button onclick="toggleNotesModal()" class="mc-btn mc-btn-gold px-2.5 py-1.5 rounded text-white text-[10px] sm:text-xs font-pixel flex items-center gap-1">
+                <i class="fa-solid fa-book-bookmark text-amber-200"></i>
+                <span>NOTA</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- GAMEPLAY VIEWPORT -->
+    <main class="relative flex-1 w-full max-w-xl mx-auto my-auto flex flex-col items-center justify-center p-2">
+        <!-- Canvas Container -->
+        <div id="canvasWrapper" class="relative w-full h-full max-h-[60vh] sm:max-h-[65vh] mc-card rounded-xl overflow-hidden flex items-center justify-center bg-slate-900 shadow-2xl">
+            <canvas id="gameCanvas" class="w-full h-full block"></canvas>
+
+            <!-- Interaction Prompt Overlay on Canvas -->
+            <div id="interactionPrompt" class="hidden absolute bottom-3 left-1/2 -translate-x-1/2 bg-amber-500/90 text-slate-950 px-3 py-1.5 rounded-lg font-pixel text-[10px] border-2 border-amber-300 animate-bounce flex items-center gap-2 shadow-lg">
+                <i class="fa-solid fa-hand-pointer"></i>
+                <span id="promptText">TEKAN BUTANG 'A' / BUKU</span>
+            </div>
+        </div>
+    </main>
+
+    <!-- SMARTPHONE TOUCH CONTROLLER BAR -->
+    <footer class="z-20 bg-slate-900 border-t-4 border-slate-800 p-2 sm:p-3 select-none">
+        <div class="max-w-xl mx-auto flex items-center justify-between gap-2">
+            <!-- D-PAD CONTROLLER -->
+            <div class="grid grid-cols-3 gap-1 w-36 h-36 sm:w-40 sm:h-40">
+                <div></div>
+                <button id="btnUp" class="dpad-btn text-xl"><i class="fa-solid fa-caret-up"></i></button>
+                <div></div>
+                <button id="btnLeft" class="dpad-btn text-xl"><i class="fa-solid fa-caret-left"></i></button>
+                <div class="dpad-btn text-[9px] font-pixel text-slate-400 opacity-60">DPAD</div>
+                <button id="btnRight" class="dpad-btn text-xl"><i class="fa-solid fa-caret-right"></i></button>
+                <div></div>
+                <button id="btnDown" class="dpad-btn text-xl"><i class="fa-solid fa-caret-down"></i></button>
+                <div></div>
+            </div>
+
+            <!-- INSTRUCTION & ACTION BUTTON -->
+            <div class="flex flex-col items-end gap-2">
+                <div class="text-[10px] text-slate-400 text-right hidden sm:block">
+                    Gunakan D-Pad / Sentuhan / Panah Keyboard untuk bergerak.
+                </div>
+                <button id="btnAction" onclick="handleActionButton()" class="mc-btn mc-btn-primary w-24 h-20 sm:w-28 sm:h-24 rounded-xl flex flex-col items-center justify-center gap-1">
+                    <span class="font-pixel text-lg text-emerald-200">A</span>
+                    <span class="font-pixel text-[9px] text-white">INTERAKSI</span>
+                </button>
+            </div>
+        </div>
+    </footer>
+
+    <!-- START / INSTRUCTION SCREEN OVERLAY -->
+    <div id="startScreen" class="fixed inset-0 z-50 bg-slate-950/95 flex items-center justify-center p-4">
+        <div class="mc-card max-w-sm w-full p-5 rounded-2xl text-center space-y-4 border-4 border-amber-600/50">
+            <div class="text-3xl font-pixel text-amber-400 drop-shadow mb-1">
+                ⛏️ MINECRAFT
+            </div>
+            <h1 class="font-pixel text-xs sm:text-sm text-emerald-400 leading-relaxed">
+                PENGEMBARAAN SEJARAH: KE ARAH KEMERDEKAAN
+            </h1>
+            
+            <p class="text-xs text-slate-300 leading-relaxed">
+                Jalan dan terokai <span class="text-emerald-400 font-bold">5 Biom Sejarah</span> (1942 - 1957). Buka <span class="text-cyan-300 font-bold">20 Peti Berlian Sejarah</span> untuk mengumpul Kunci Portal Kemerdekaan!
+            </p>
+
+            <div class="mc-border-dirt p-3 rounded-lg text-left text-[11px] space-y-1.5 text-amber-100">
+                <div class="font-pixel text-[10px] text-amber-300 mb-1">📱 KAWALAN SMARTPHONE:</div>
+                <div>• Guna <strong>D-Pad</strong> atau <strong>Sentuh skrin</strong> untuk berjalan.</div>
+                <div>• Dekati Peti / Watak & Tekan <strong>'A'</strong> untuk jawab soalan.</div>
+                <div>• Gunakan butang <strong>NOTA</strong> jika perlu bantuan fakta.</div>
+            </div>
+
+            <button onclick="startGame()" class="mc-btn mc-btn-primary w-full py-3 font-pixel text-xs text-white flex items-center justify-center gap-2">
+                <i class="fa-solid fa-play"></i>
+                <span>MULA KEMBARA</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- QUIZ CHALLENGE MODAL -->
+    <div id="quizModal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-3">
+        <div class="mc-card max-w-md w-full p-4 rounded-2xl space-y-3 relative border-4 border-amber-500">
+            <!-- Header Badges -->
+            <div class="flex justify-between items-center">
+                <span id="quizBadge" class="font-pixel text-[10px] bg-emerald-900 text-emerald-300 border border-emerald-600 px-2.5 py-1 rounded">
+                    PETI 1 / 20
+                </span>
+                <span id="quizYear" class="font-pixel text-[10px] bg-amber-950 text-amber-300 border border-amber-700 px-2.5 py-1 rounded">
+                    1942 - 1945
+                </span>
+            </div>
+
+            <!-- Question Text -->
+            <h2 id="quizQuestion" class="text-sm sm:text-base font-bold text-white leading-relaxed pt-1">
+                Soalan Sejarah...
+            </h2>
+
+            <!-- Options Grid -->
+            <div id="quizOptions" class="space-y-2">
+                <!-- Dynamic Options -->
+            </div>
+
+            <!-- Feedback Info -->
+            <div id="quizFeedback" class="hidden p-3 bg-slate-900 border-2 border-slate-700 rounded-lg text-xs space-y-2">
+                <div id="feedbackHeader" class="font-pixel text-[10px]"></div>
+                <p id="feedbackText" class="text-slate-200 text-[11px] leading-relaxed"></p>
+                <button onclick="closeQuizModal()" class="mc-btn mc-btn-primary w-full py-2 font-pixel text-xs text-white">
+                    SAMBUNG KEMBARA
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- NOTA POKET MODAL -->
+    <div id="notesModal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
+        <div class="mc-card w-full max-w-md h-[85vh] sm:h-[80vh] rounded-t-2xl sm:rounded-2xl flex flex-col overflow-hidden border-t-4 sm:border-4 border-amber-500">
+            <div class="bg-slate-900 p-3.5 border-b-2 border-slate-700 flex justify-between items-center">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-book-open text-amber-400 text-base"></i>
+                    <span class="font-pixel text-xs text-amber-300">NOTA POKET: KE ARAH KEMERDEKAAN</span>
+                </div>
+                <button onclick="toggleNotesModal()" class="text-slate-400 hover:text-white text-xl px-2">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="p-4 overflow-y-auto space-y-3.5 text-xs text-slate-200">
+                <p class="text-[11px] text-amber-200 italic bg-amber-950/60 p-2.5 rounded-lg border border-amber-800/60">
+                    "Keperitan akibat dikuasai oleh penjajah menyebabkan rakyat bangkit untuk menuntut kebebasan tanah air. Permufakatan masyarakat dan pemimpin pelbagai kaum memudahkan proses mencapai kemerdekaan."
+                </p>
+
+                <!-- 1. 1942-1945: Pendudukan Jepun -->
+                <div class="mc-border-dirt p-3 rounded-lg space-y-1">
+                    <div class="font-pixel text-[10px] text-amber-300">1. PENDUDUKAN JEPUN (1942 - 1945)</div>
+                    <ul class="list-disc list-inside text-amber-100 text-[11px] space-y-1">
+                        <li>Pendudukan Jepun menyebabkan banyak kesengsaraan.</li>
+                        <li>Pemimpin tempatan bangkit menggerakkan perjuangan untuk mendapatkan kemerdekaan.</li>
+                    </ul>
+                </div>
+
+                <!-- 2. 1946-1948: Malayan Union -->
+                <div class="mc-border-stone p-3 rounded-lg space-y-1">
+                    <div class="font-pixel text-[10px] text-sky-300">2. MALAYAN UNION (1946 - 1948)</div>
+                    <ul class="list-disc list-inside text-slate-200 text-[11px] space-y-1">
+                        <li>British memperkenalkan Malayan Union yang merupakan bentuk penjajahan baharu.</li>
+                        <li>Menghapuskan kuasa raja-raja Melayu.</li>
+                        <li>Orang Melayu dipimpin oleh <strong>Dato' Onn bin Ja'afar</strong> bangkit menentang Malayan Union.</li>
+                        <li>Malayan Union digantikan dengan <strong>Persekutuan Tanah Melayu</strong> pada tahun 1948.</li>
+                    </ul>
+                </div>
+
+                <!-- 3. 1948-1960: Ancaman Komunis -->
+                <div class="mc-border-stone p-3 rounded-lg space-y-1">
+                    <div class="font-pixel text-[10px] text-rose-300">3. ANCAMAN KOMUNIS (1948)</div>
+                    <ul class="list-disc list-inside text-slate-200 text-[11px] space-y-1">
+                        <li>Parti Komunis Malaya (PKM) melakukan kezaliman seperti membunuh, memusnahkan lombong bijih timah dan ladang getah.</li>
+                        <li>Keganasan komunis mengakibatkan darurat diisytiharkan di seluruh negara pada tahun 1948.</li>
+                        <li>Rundingan Baling diadakan pada tahun 1955 tetapi gagal.</li>
+                        <li>Pada tahun 1960, darurat diisytiharkan tamat.</li>
+                    </ul>
+                    <div class="bg-rose-950/80 text-rose-200 p-2 rounded text-[10px] mt-1 border border-rose-800/50">
+                        <strong>Tahukah Anda?</strong> Darurat merupakan keadaan susah yang datang dengan tidak disangka-sangka.
+                    </div>
+                </div>
+
+                <!-- 4. 1945-1951: Kemunculan Parti-parti Politik -->
+                <div class="mc-border-dirt p-3 rounded-lg space-y-1">
+                    <div class="font-pixel text-[10px] text-emerald-300">4. KEMUNCULAN PARTI-PARTI POLITIK (1945 - 1951)</div>
+                    <ul class="list-disc list-inside text-amber-100 text-[11px] space-y-1">
+                        <li><strong>1945:</strong> Parti Kebangsaan Melayu Malaya (PKMM)</li>
+                        <li><strong>1946:</strong> United Malays National Organisation (UMNO)</li>
+                        <li><strong>1946:</strong> Malayan Indian Congress (MIC)</li>
+                        <li><strong>1948:</strong> Hizbul Muslimin</li>
+                        <li><strong>1949:</strong> Malayan Chinese Association (MCA)</li>
+                        <li><strong>1951:</strong> Parti Islam Se-Malaya (PAS)</li>
+                    </ul>
+                </div>
+
+                <!-- 5. 1955: Pilihan Raya Majlis Perundangan Persekutuan -->
+                <div class="mc-border-stone p-3 rounded-lg space-y-1">
+                    <div class="font-pixel text-[10px] text-yellow-300">5. PILIHAN RAYA MAJLIS PERUNDANGAN PERSEKUTUAN (1955)</div>
+                    <ul class="list-disc list-inside text-slate-200 text-[11px] space-y-1">
+                        <li>Parti Perikatan (UMNO, MCA dan MIC) ditubuhkan bagi menghadapi pilihan raya.</li>
+                        <li>Setiap parti politik mewakili setiap kaum (Melayu, Cina dan India). Parti Perikatan menang dalam pilihan raya ini.</li>
+                        <li><strong>Tunku Abdul Rahman</strong> dilantik sebagai Ketua Menteri.</li>
+                        <li>Parti Perikatan berunding dengan British untuk mendapatkan kemerdekaan.</li>
+                    </ul>
+                </div>
+
+                <!-- 6. 1956: Rundingan London -->
+                <div class="mc-border-dirt p-3 rounded-lg space-y-1">
+                    <div class="font-pixel text-[10px] text-orange-300">6. RUNDINGAN LONDON (1956)</div>
+                    <ul class="list-disc list-inside text-amber-100 text-[11px] space-y-1">
+                        <li>Wakil raja-raja Melayu dan wakil Parti Perikatan berangkat ke London.</li>
+                        <li>Tujuan mereka ke London adalah untuk berunding dengan British berkaitan dengan kemerdekaan.</li>
+                    </ul>
+                </div>
+
+                <!-- 7. 1957: Kemerdekaan Persekutuan Tanah Melayu -->
+                <div class="mc-border-stone p-3 rounded-lg space-y-1">
+                    <div class="font-pixel text-[10px] text-emerald-400">7. KEMERDEKAAN PERSEKUTUAN TANAH MELAYU (1957)</div>
+                    <p class="text-emerald-200 text-[11px]">
+                        <strong>Tunku Abdul Rahman</strong> mengisytiharkan kemerdekaan Persekutuan Tanah Melayu pada <strong>31 Ogos 1957</strong>.
+                    </p>
+                </div>
+            </div>
+
+            <div class="p-3 bg-slate-900 border-t-2 border-slate-700">
+                <button onclick="toggleNotesModal()" class="mc-btn mc-btn-primary w-full py-2 font-pixel text-xs text-white">
+                    TUTUP NOTA
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- VICTORY SCREEN OVERLAY -->
+    <div id="victoryScreen" class="hidden fixed inset-0 z-50 bg-slate-950/95 flex items-center justify-center p-4">
+        <div class="mc-card max-w-sm w-full p-6 rounded-2xl text-center space-y-4 border-4 border-yellow-500 shadow-2xl">
+            <div class="text-4xl animate-bounce">🇲🇾</div>
+            <div class="font-pixel text-sm text-yellow-400 drop-shadow">PORTAL KEMERDEKAAN TERBUKA!</div>
+            <div class="text-2xl font-pixel text-emerald-400">MERDEKA!</div>
+            
+            <p class="text-xs text-slate-200 leading-relaxed">
+                Syabas Pejuang Sejarah! Anda telah mengelilingi semua Biom Sejarah dan mengumpul 20 Berlian Kemerdekaan!
+            </p>
+
+            <button onclick="startGame()" class="mc-btn mc-btn-gold w-full py-3 font-pixel text-xs text-white flex items-center justify-center gap-2">
+                <i class="fa-solid fa-rotate-right"></i>
+                <span>MAIN SEMULA</span>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // AUDIO SYNTHESIZER FOR SOUND EFFECTS
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        function playAudioTone(freq, duration, type = 'sine') {
+            try {
+                if (audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                }
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + duration);
+            } catch (e) {}
+        }
+
+        function playSound(type) {
+            if (type === 'step') {
+                playAudioTone(120 + Math.random() * 40, 0.04, 'triangle');
+            } else if (type === 'click') {
+                playAudioTone(400, 0.05, 'square');
+            } else if (type === 'correct') {
+                playAudioTone(523, 0.1, 'sine');
+                setTimeout(() => playAudioTone(659, 0.1, 'sine'), 80);
+                setTimeout(() => playAudioTone(783, 0.2, 'sine'), 160);
+            } else if (type === 'wrong') {
+                playAudioTone(180, 0.12, 'sawtooth');
+                setTimeout(() => playAudioTone(130, 0.2, 'sawtooth'), 120);
+            } else if (type === 'victory') {
+                [523, 659, 783, 1046].forEach((f, idx) => {
+                    setTimeout(() => playAudioTone(f, 0.25, 'triangle'), idx * 120);
+                });
+            }
+        }
+
+        // 20 HISTORY QUESTIONS ACCORDING TO YEAR 5 SYLLABUS
+        const questions = [
+            // BIOME 1: Pendudukan Jepun (1942-1945)
+            { biome: "Biom 1: Pendudukan Jepun", year: "1942 - 1945", question: "Bilakah tempoh pendudukan Jepun di Tanah Melayu?", options: ["1942 - 1945", "1946 - 1948", "1948 - 1950", "1955 - 1957"], answer: 0, info: "Pendudukan Jepun berlaku dari tahun 1942 hingga 1945." },
+            { biome: "Biom 1: Pendudukan Jepun", year: "1942 - 1945", question: "Apakah tindakan pemimpin tempatan semasa pendudukan Jepun?", options: ["Lari keluar negara", "Bangkit bergerak menuntut kemerdekaan", "Menyertai tentera Jepun", "Menyerah kalah"], answer: 1, info: "Pemimpin tempatan bangkit menyemarakkan perjuangan kemerdekaan." },
+            
+            // BIOME 2: Kemunculan Parti Politik (1945-1951)
+            { biome: "Biom 2: Parti Politik", year: "1945", question: "Parti Kebangsaan Melayu Malaya (PKMM) ditubuhkan pada tahun...", options: ["1942", "1945", "1948", "1951"], answer: 1, info: "PKMM ditubuhkan pada tahun 1945." },
+            { biome: "Biom 2: Parti Politik", year: "1946", question: "Dua parti politik utama yang ditubuhkan pada tahun 1946 ialah...", options: ["UMNO dan MIC", "PKMM dan MCA", "PAS dan Hizbul Muslimin", "MCA dan MIC"], answer: 0, info: "UMNO dan MIC ditubuhkan pada tahun 1946." },
+            { biome: "Biom 2: Parti Politik", year: "1948", question: "Parti politik manakah yang ditubuhkan pada tahun 1948?", options: ["MCA", "PAS", "Hizbul Muslimin", "PKMM"], answer: 2, info: "Hizbul Muslimin ditubuhkan pada tahun 1948." },
+            { biome: "Biom 2: Parti Politik", year: "1949", question: "Malayan Chinese Association (MCA) ditubuhkan pada tahun...", options: ["1946", "1948", "1949", "1951"], answer: 2, info: "MCA ditubuhkan pada tahun 1949." },
+            { biome: "Biom 2: Parti Politik", year: "1951", question: "Parti Islam Se-Malaya (PAS) ditubuhkan pada tahun...", options: ["1945", "1948", "1949", "1951"], answer: 3, info: "PAS ditubuhkan pada tahun 1951." },
+
+            // BIOME 3: Malayan Union (1946-1948)
+            { biome: "Biom 3: Malayan Union", year: "1946", question: "Bentuk penjajahan baharu yang diperkenalkan British pada 1946 ialah...", options: ["Persekutuan", "Malayan Union", "Sistem Ahli", "Negeri Selat"], answer: 1, info: "British memperkenalkan Malayan Union pada 1946." },
+            { biome: "Biom 3: Malayan Union", year: "1946", question: "Apakah kesan Malayan Union terhadap Raja-raja Melayu?", options: ["Menambah kuasa", "Menghapuskan kuasa Raja", "Melantik Gabenor", "Menaikkan elaun"], answer: 1, info: "Malayan Union menghapuskan kuasa Raja-raja Melayu." },
+            { biome: "Biom 3: Malayan Union", year: "1946", question: "Siapakah tokoh yang memimpin tentangan terhadap Malayan Union?", options: ["Tunku Abdul Rahman", "Dato' Onn bin Ja'afar", "Tun Razak", "Dr. Burhanuddin"], answer: 1, info: "Dato' Onn bin Ja'afar memimpin penentangan terhadap Malayan Union." },
+            { biome: "Biom 3: Malayan Union", year: "1948", question: "Malayan Union digantikan dengan Persekutuan Tanah Melayu pada tahun...", options: ["1945", "1946", "1948", "1955"], answer: 2, info: "Persekutuan Tanah Melayu dibentuk pada 1948." },
+
+            // BIOME 4: Ancaman Komunis (1948-1960)
+            { biome: "Biom 4: Ancaman Komunis", year: "1948", question: "Tahun manakah Darurat diisytiharkan akibat ancaman komunis?", options: ["1942", "1946", "1948", "1960"], answer: 2, info: "Darurat diisytiharkan di seluruh negara pada 1948." },
+            { biome: "Biom 4: Ancaman Komunis", year: "1948 - 1960", question: "Dua sasaran ekonomi yang dimusnahkan oleh komunis ialah...", options: ["Lombong bijih timah & ladang getah", "Pelabuhan & bandar", "Sawah & kilang", "Sekolah & stesen"], answer: 0, info: "Komunis memusnahkan lombong bijih timah dan ladang getah." },
+            { biome: "Biom 4: Ancaman Komunis", year: "1955", question: "Apakah perundingan 1955 yang diadakan untuk menamatkan komunis?", options: ["Rundingan London", "Rundingan Baling", "Rundingan Jakarta", "Rundingan Bangkok"], answer: 1, info: "Rundingan Baling diadakan pada 1955 tetapi gagal." },
+            { biome: "Biom 4: Ancaman Komunis", year: "1960", question: "Darurat diisytiharkan tamat sepenuhnya pada tahun...", options: ["1955", "1957", "1960", "1963"], answer: 2, info: "Darurat tamat secara rasmi pada 1960." },
+
+            // BIOME 5: Pilihan Raya & Kemerdekaan (1955-1957)
+            { biome: "Biom 5: Pilihan Raya", year: "1955", question: "Parti Perikatan yang menang Pilihan Raya 1955 terdiri daripada...", options: ["UMNO, MCA dan MIC", "PKMM, UMNO dan PAS", "MCA, MIC dan PAS", "UMNO dan PAS"], answer: 0, info: "Parti Perikatan dianggotai UMNO, MCA dan MIC." },
+            { biome: "Biom 5: Pilihan Raya", year: "1955", question: "Siapakah Ketua Menteri pertama selepas Pilihan Raya 1955?", options: ["Dato' Onn", "Tunku Abdul Rahman", "Tun Tan Cheng Lock", "Tun Sambanthan"], answer: 1, info: "Tunku Abdul Rahman dilantik sebagai Ketua Menteri." },
+            { biome: "Biom 5: Rundingan London", year: "1956", question: "Siapakah yang menyertai Rombongan Kemerdekaan ke London 1956?", options: ["Wakil Raja-raja Melayu & Parti Perikatan", "Tentera British & Komunis", "Jepun & PKMM", "Pegawai British sahaja"], answer: 0, info: "Rombongan disertai wakil Raja-raja Melayu dan Parti Perikatan." },
+            { biome: "Biom 5: Kemerdekaan", year: "31 Ogos 1957", question: "Tarikh Kemerdekaan Persekutuan Tanah Melayu ialah...", options: ["15 Ogos 1945", "1 Feb 1948", "31 Ogos 1957", "16 Sep 1963"], answer: 2, info: "Kemerdekaan diisytiharkan pada 31 Ogos 1957!" },
+            { biome: "Biom 5: Kemerdekaan", year: "1957", question: "Faktor utama kejayaan mencapai kemerdekaan negara kita ialah...", options: ["Permufakatan rakyat & pemimpin pelbagai kaum", "Campur tangan tentera luar", "Pengaruh jiran", "Pembubaran parti"], answer: 0, info: "Permufakatan pelbagai kaum menjadi kunci kemerdekaan." }
+        ];
+
+        // GAME ENGINE & CANVAS WORLD SETUP
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        const GRID_SIZE = 16;
+        const TILE_SIZE = 32;
+
+        let player = {
+            x: 1,
+            y: 1,
+            dir: 'down',
+            animFrame: 0
+        };
+
+        let health = 3;
+        let score = 0;
+        let activeChestIndex = -1;
+        let chestStates = new Array(20).fill(false); // false = unopened, true = opened
+
+        // 20 Chest positions across a continuous 5-biome map (Grid size 20x24)
+        const MAP_WIDTH = 16;
+        const MAP_HEIGHT = 22;
+
+        // Biome background colors & tile styles
+        const biomeColors = [
+            { bg: "#2d3829", path: "#485942", name: "1942: Pendudukan Jepun" },
+            { bg: "#383329", path: "#544d3e", name: "1945-1951: Parti Politik" },
+            { bg: "#3b2b2b", path: "#594242", name: "1946-1948: Malayan Union" },
+            { bg: "#2b2f3b", path: "#414759", name: "1948-1960: Ancaman Komunis" },
+            { bg: "#3a3821", path: "#5e5a35", name: "1955-1957: Kemerdekaan!" }
+        ];
+
+        // Chest objects linked to questions 0..19
+        const chestObjects = [
+            { id: 0, x: 2, y: 2, biomeIdx: 0 },
+            { id: 1, x: 13, y: 2, biomeIdx: 0 },
+            { id: 2, x: 2, y: 6, biomeIdx: 1 },
+            { id: 3, x: 7, y: 6, biomeIdx: 1 },
+            { id: 4, x: 13, y: 6, biomeIdx: 1 },
+            { id: 5, x: 3, y: 9, biomeIdx: 1 },
+            { id: 6, x: 12, y: 9, biomeIdx: 1 },
+            { id: 7, x: 2, y: 12, biomeIdx: 2 },
+            { id: 8, x: 7, y: 12, biomeIdx: 2 },
+            { id: 9, x: 13, y: 12, biomeIdx: 2 },
+            { id: 10, x: 4, y: 14, biomeIdx: 2 },
+            { id: 11, x: 2, y: 16, biomeIdx: 3 },
+            { id: 12, x: 8, y: 16, biomeIdx: 3 },
+            { id: 13, x: 13, y: 16, biomeIdx: 3 },
+            { id: 14, x: 3, y: 18, biomeIdx: 3 },
+            { id: 15, x: 2, y: 20, biomeIdx: 4 },
+            { id: 16, x: 6, y: 20, biomeIdx: 4 },
+            { id: 17, x: 10, y: 20, biomeIdx: 4 },
+            { id: 18, x: 13, y: 20, biomeIdx: 4 },
+            { id: 19, x: 8, y: 21, biomeIdx: 4 } // Final Portal Chest
+        ];
+
+        // Resize Canvas to container
+        function resizeCanvas() {
+            const wrapper = document.getElementById('canvasWrapper');
+            canvas.width = wrapper.clientWidth;
+            canvas.height = wrapper.clientHeight;
+            drawWorld();
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+
+        function drawWorld() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Calculate scale and camera offset to keep player centered
+            const viewWidth = MAP_WIDTH * TILE_SIZE;
+            const viewHeight = MAP_HEIGHT * TILE_SIZE;
+
+            const scale = Math.min(canvas.width / (9 * TILE_SIZE), canvas.height / (9 * TILE_SIZE));
+            const tileSizeScaled = TILE_SIZE * scale;
+
+            // Camera center on player
+            const camX = canvas.width / 2 - (player.x + 0.5) * tileSizeScaled;
+            const camY = canvas.height / 2 - (player.y + 0.5) * tileSizeScaled;
+
+            // Render Biome Terrain
+            for (let y = 0; y < MAP_HEIGHT; y++) {
+                const bIdx = Math.min(4, Math.floor(y / 4.4));
+                const bColor = biomeColors[bIdx];
+
+                for (let x = 0; x < MAP_WIDTH; x++) {
+                    const screenX = camX + x * tileSizeScaled;
+                    const screenY = camY + y * tileSizeScaled;
+
+                    // Draw Grass / Floor Tile
+                    ctx.fillStyle = ((x + y) % 2 === 0) ? bColor.bg : bColor.path;
+                    ctx.fillRect(screenX, screenY, tileSizeScaled, tileSizeScaled);
+
+                    // Grid border lines (Minecraft block look)
+                    ctx.strokeStyle = "rgba(0,0,0,0.15)";
+                    ctx.strokeRect(screenX, screenY, tileSizeScaled, tileSizeScaled);
+
+                    // Map Outer Walls
+                    if (x === 0 || x === MAP_WIDTH - 1 || y === 0 || y === MAP_HEIGHT - 1) {
+                        ctx.fillStyle = "#1e2026";
+                        ctx.fillRect(screenX, screenY, tileSizeScaled, tileSizeScaled);
+                        ctx.fillStyle = "#3a3e4a";
+                        ctx.fillRect(screenX + 2, screenY + 2, tileSizeScaled - 4, tileSizeScaled - 4);
+                    }
+                }
+            }
+
+            // Render Chests & Objectives
+            chestObjects.forEach(ch => {
+                const screenX = camX + ch.x * tileSizeScaled;
+                const screenY = camY + ch.y * tileSizeScaled;
+
+                const isOpened = chestStates[ch.id];
+
+                // Draw Chest Box
+                ctx.fillStyle = isOpened ? "#4e3629" : "#c67d0a";
+                ctx.fillRect(screenX + 4, screenY + 6, tileSizeScaled - 8, tileSizeScaled - 10);
+                
+                // Chest Lid Highlight & Lock
+                ctx.fillStyle = isOpened ? "#2a1c14" : "#ffe066";
+                ctx.fillRect(screenX + 6, screenY + 8, tileSizeScaled - 12, 4);
+                
+                if (!isOpened) {
+                    ctx.fillStyle = "#00e5ff"; // Diamond shine indicator
+                    ctx.fillRect(screenX + tileSizeScaled / 2 - 2, screenY + tileSizeScaled / 2 - 2, 4, 4);
+                }
+
+                // Chest Number Label
+                ctx.fillStyle = "#ffffff";
+                ctx.font = `${Math.max(8, Math.floor(10 * scale))}px 'Press Start 2P', monospace`;
+                ctx.textAlign = "center";
+                ctx.fillText(`${ch.id + 1}`, screenX + tileSizeScaled / 2, screenY - 4);
+            });
+
+            // Render Player (Minecraft Steve / Pejuang Pixel)
+            const pScreenX = camX + player.x * tileSizeScaled;
+            const pScreenY = camY + player.y * tileSizeScaled;
+
+            // Player Shadow
+            ctx.fillStyle = "rgba(0,0,0,0.3)";
+            ctx.beginPath();
+            ctx.ellipse(pScreenX + tileSizeScaled / 2, pScreenY + tileSizeScaled - 2, tileSizeScaled / 3, tileSizeScaled / 6, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Player Body (Shirt)
+            ctx.fillStyle = "#0288d1"; // Turquoise blue
+            ctx.fillRect(pScreenX + 6, pScreenY + 12, tileSizeScaled - 12, tileSizeScaled - 14);
+
+            // Head
+            ctx.fillStyle = "#ffcc80"; // Skin tone
+            ctx.fillRect(pScreenX + 8, pScreenY + 2, tileSizeScaled - 16, 12);
+
+            // Hair
+            ctx.fillStyle = "#4e2700";
+            ctx.fillRect(pScreenX + 8, pScreenY + 2, tileSizeScaled - 16, 4);
+
+            // Eyes
+            ctx.fillStyle = "#ffffff";
+            ctx.fillRect(pScreenX + 10, pScreenY + 6, 3, 3);
+            ctx.fillRect(pScreenX + tileSizeScaled - 13, pScreenY + 6, 3, 3);
+            ctx.fillStyle = "#000000";
+            ctx.fillRect(pScreenX + 11, pScreenY + 7, 2, 2);
+            ctx.fillRect(pScreenX + tileSizeScaled - 12, pScreenY + 7, 2, 2);
+
+            // Check if player is adjacent to any unopened chest
+            checkProximity();
+        }
+
+        function movePlayer(dx, dy) {
+            const newX = player.x + dx;
+            const newY = player.y + dy;
+
+            // Collision check against map boundaries
+            if (newX <= 0 || newX >= MAP_WIDTH - 1 || newY <= 0 || newY >= MAP_HEIGHT - 1) {
+                return;
+            }
+
+            // Collision check against unopened chests (acting as solid blocks until answered)
+            const hitChest = chestObjects.find(ch => ch.x === newX && ch.y === newY);
+            if (hitChest && !chestStates[hitChest.id]) {
+                // Interact directly when bumping into chest
+                openQuiz(hitChest.id);
+                return;
+            }
+
+            player.x = newX;
+            player.y = newY;
+            playSound('step');
+
+            // Update Current Biome HUD based on Y position
+            const bIdx = Math.min(4, Math.floor(player.y / 4.4));
+            document.getElementById('hudBiomeName').innerText = biomeColors[bIdx].name;
+
+            drawWorld();
+        }
+
+        function checkProximity() {
+            const nearChest = chestObjects.find(ch => 
+                Math.abs(ch.x - player.x) <= 1 && Math.abs(ch.y - player.y) <= 1 && !chestStates[ch.id]
+            );
+
+            const promptEl = document.getElementById('interactionPrompt');
+            if (nearChest) {
+                activeChestIndex = nearChest.id;
+                promptEl.classList.remove('hidden');
+                document.getElementById('promptText').innerText = `TEKAN 'A' UNTUK PETI ${nearChest.id + 1}`;
+            } else {
+                activeChestIndex = -1;
+                promptEl.classList.add('hidden');
+            }
+        }
+
+        function handleActionButton() {
+            playSound('click');
+            if (activeChestIndex !== -1 && !chestStates[activeChestIndex]) {
+                openQuiz(activeChestIndex);
+            } else {
+                // Find nearest unopened chest in map to guide player
+                const nextUnopened = chestObjects.find(ch => !chestStates[ch.id]);
+                if (nextUnopened) {
+                    player.x = Math.max(1, nextUnopened.x - 1);
+                    player.y = nextUnopened.y;
+                    drawWorld();
+                }
+            }
+        }
+
+        function openQuiz(chestId) {
+            playSound('click');
+            activeChestIndex = chestId;
+            const q = questions[chestId];
+
+            document.getElementById('quizBadge').innerText = `PETI ${chestId + 1} / 20`;
+            document.getElementById('quizYear').innerText = q.year;
+            document.getElementById('quizQuestion').innerText = q.question;
+
+            document.getElementById('quizFeedback').classList.add('hidden');
+
+            const optsContainer = document.getElementById('quizOptions');
+            optsContainer.innerHTML = '';
+
+            q.options.forEach((optText, i) => {
+                const btn = document.createElement('button');
+                btn.className = 'mc-btn w-full p-2.5 rounded-lg text-left text-xs font-bold text-white flex items-center gap-2';
+                btn.onclick = () => submitAnswer(i);
+                btn.innerHTML = `
+                    <span class="font-pixel text-[10px] bg-slate-800 px-2 py-0.5 rounded text-amber-300 border border-slate-600">${String.fromCharCode(65 + i)}</span>
+                    <span class="text-[11px]">${optText}</span>
+                `;
+                optsContainer.appendChild(btn);
+            });
+
+            document.getElementById('quizModal').classList.remove('hidden');
+        }
+
+        function submitAnswer(selectedIdx) {
+            const q = questions[activeChestIndex];
+            const feedbackEl = document.getElementById('quizFeedback');
+            const headerEl = document.getElementById('feedbackHeader');
+            const textEl = document.getElementById('feedbackText');
+
+            feedbackEl.classList.remove('hidden');
+
+            if (selectedIdx === q.answer) {
+                playSound('correct');
+                if (!chestStates[activeChestIndex]) {
+                    chestStates[activeChestIndex] = true;
+                    score++;
+                }
+                headerEl.className = 'font-pixel text-[10px] text-emerald-400';
+                headerEl.innerHTML = '<i class="fa-solid fa-circle-check"></i> JAWAPAN TEPAT! (+1 BERLIAN)';
+            } else {
+                playSound('wrong');
+                health--;
+                if (health < 1) health = 1; // revive heart for non-stop learning
+                headerEl.className = 'font-pixel text-[10px] text-red-400';
+                headerEl.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> TANGKAS LAGI! BELAJAR DARI NOTA';
+            }
+
+            textEl.innerText = q.info;
+            updateHUD();
+            drawWorld();
+        }
+
+        function closeQuizModal() {
+            playSound('click');
+            document.getElementById('quizModal').classList.add('hidden');
+            
+            // Check victory condition
+            if (score >= 20) {
+                playSound('victory');
+                document.getElementById('victoryScreen').classList.remove('hidden');
+            }
+        }
+
+        function updateHUD() {
+            document.getElementById('hudDiamonds').innerText = `${score}/20`;
+            const hContainer = document.getElementById('healthContainer');
+            hContainer.innerHTML = '';
+            for (let i = 0; i < 3; i++) {
+                if (i < health) {
+                    hContainer.innerHTML += `<i class="fa-solid fa-heart text-red-500 text-base sm:text-lg"></i>`;
+                } else {
+                    hContainer.innerHTML += `<i class="fa-solid fa-heart text-slate-700 text-base sm:text-lg"></i>`;
+                }
+            }
+        }
+
+        function toggleNotesModal() {
+            playSound('click');
+            document.getElementById('notesModal').classList.toggle('hidden');
+        }
+
+        // D-PAD TOUCH CONTROLLER BINDINGS
+        function setupControls() {
+            const bindBtn = (id, dx, dy) => {
+                const el = document.getElementById(id);
+                const trigger = (e) => {
+                    e.preventDefault();
+                    el.classList.add('active');
+                    movePlayer(dx, dy);
+                };
+                const release = (e) => {
+                    e.preventDefault();
+                    el.classList.remove('active');
+                };
+
+                el.addEventListener('touchstart', trigger);
+                el.addEventListener('touchend', release);
+                el.addEventListener('mousedown', trigger);
+                el.addEventListener('mouseup', release);
+            };
+
+            bindBtn('btnUp', 0, -1);
+            bindBtn('btnDown', 0, 1);
+            bindBtn('btnLeft', -1, 0);
+            bindBtn('btnRight', 1, 0);
+
+            // CANVAS TAP TO MOVE
+            canvas.addEventListener('click', (e) => {
+                const rect = canvas.getBoundingClientRect();
+                const clickX = e.clientX - rect.left;
+                const clickY = e.clientY - rect.top;
+
+                const centerScreenX = canvas.width / 2;
+                const centerScreenY = canvas.height / 2;
+
+                const diffX = clickX - centerScreenX;
+                const diffY = clickY - centerScreenY;
+
+                if (Math.abs(diffX) > Math.abs(diffY)) {
+                    movePlayer(diffX > 0 ? 1 : -1, 0);
+                } else {
+                    movePlayer(0, diffY > 0 ? 1 : -1);
+                }
+            });
+
+            // KEYBOARD CONTROLS FOR DESKTOP
+            window.addEventListener('keydown', (e) => {
+                if (document.getElementById('quizModal').classList.contains('hidden')) {
+                    if (e.key === 'ArrowUp' || e.key === 'w') movePlayer(0, -1);
+                    if (e.key === 'ArrowDown' || e.key === 's') movePlayer(0, 1);
+                    if (e.key === 'ArrowLeft' || e.key === 'a') movePlayer(-1, 0);
+                    if (e.key === 'ArrowRight' || e.key === 'd') movePlayer(1, 0);
+                    if (e.key === ' ' || e.key === 'Enter') handleActionButton();
+                }
+            });
+        }
+
+        // GAME INITIALIZATION
+        function startGame() {
+            playSound('click');
+            player.x = 1;
+            player.y = 1;
+            health = 3;
+            score = 0;
+            chestStates.fill(false);
+
+            document.getElementById('startScreen').classList.add('hidden');
+            document.getElementById('victoryScreen').classList.add('hidden');
+
+            updateHUD();
+            resizeCanvas();
+        }
+
+        window.onload = function() {
+            setupControls();
+            resizeCanvas();
+        };
+    </script>
+</body>
+</html>
